@@ -1,0 +1,4 @@
+import {cookies} from "next/headers"; import {SignJWT,jwtVerify} from "jose"; const secret=new TextEncoder().encode(process.env.AUTH_SECRET||"dev-secret");
+export async function setSession(id:string){const token=await new SignJWT({id}).setProtectedHeader({alg:"HS256"}).setExpirationTime("7d").sign(secret);(await cookies()).set("session",token,{httpOnly:true,sameSite:"lax",secure:process.env.NODE_ENV==="production",path:"/"})}
+export async function getSession(){const token=(await cookies()).get("session")?.value;if(!token)return null;try{return (await jwtVerify(token,secret)).payload as {id:string}}catch{return null}}
+export async function clearSession(){(await cookies()).delete("session")}
