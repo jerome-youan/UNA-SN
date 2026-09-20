@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sciences_nature
+      POSTGRES_USER: campus
+      POSTGRES_PASSWORD: change-me-in-production
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campus -d sciences_nature"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://campus:change-me-in-production@db:5432/sciences_nature?schema=public
+      NODE_ENV: production
+      AUTH_SECRET: replace-me
+      OPENAI_API_KEY: replace-me
+      OPENAI_MODEL: gpt-5.6-luna
+      ADMIN_NAME: Administrateur
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: replace-me
+    ports:
+      - "3000:3000"
+    volumes:
+      - uploads:/app/public/uploads
+volumes:
+  postgres_data:
+  uploads:
